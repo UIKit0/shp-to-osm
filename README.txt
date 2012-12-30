@@ -35,6 +35,13 @@ tags in the resulting OSM file. An optional string argument to --copyTags will a
 a prefix to all copied tag. Tags will only be copied if their value is non-empty or
 non-null.
 
+Using substitution variables:
+There is a special kind of rule allowing to use the substitution variables. To create such rule  set the first field to "var", e.g.
+        var,OBJL,75,object,light
+whenever the tag OBJJ with value of 75 is encountered the variable object is set to value light.
+Later on this variable can be used in other rules:
+        point,COLOUR,3,seamark:${object}:colour,red
+
 Running
 
  Use the following command line to run the app. Also, you can use the .bat or .sh run files

@@ -1,5 +1,7 @@
 package com.yellowbkpk.geo.shp;
 
+import java.util.List;
+
 import com.yellowbkpk.osm.primitive.Tag;
 
 public class Rule {
@@ -73,4 +75,32 @@ public class Rule {
 
         return null;
     }
+
+	public Rule applyVariables(List<Tag> vars) {
+		if ( vars.isEmpty() ) return this;
+		Rule rule;
+		
+		if ( this .useOriginalValue )
+			rule = new Rule(this.type, this.srcKey, this.srcValue, this.targetKey);
+		else
+			rule = new Rule(this.type, this.srcKey, this.srcValue, this.targetKey, this.targetValue);
+		
+		for( Tag var : vars)
+		{
+			String target = "${" + var.getKey() + "}";
+			String replacement = var.getValue();
+			
+			rule.srcKey = replace( rule.srcKey, target, replacement);
+			rule.srcValue = replace(rule.srcValue, target, replacement);
+			rule.targetKey = replace(rule.targetKey, target, replacement);
+			rule.targetValue = replace(rule.targetValue, target, replacement);
+		}
+		return rule;
+	}
+	
+	private static String replace(String s, String target, String replacement)
+	{
+		if ( s == null ) return null;
+		return s.replace(target, replacement);
+	}
 }

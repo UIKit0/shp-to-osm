@@ -247,6 +247,8 @@ public class Main {
                     rules.addLineRule(r);
                 } else if ("point".equals(type)) {
                     rules.addPointRule(r);
+                } else if ("var".equals(type)) {
+                    rules.addVariablesRule(r);
                 } else {
                     log.log(Level.WARNING, "Line " + lineCount + ": Unknown type " + type);
                 }

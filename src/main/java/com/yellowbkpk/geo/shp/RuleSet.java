@@ -17,6 +17,7 @@ public class RuleSet {
     private List<Rule> outer = new LinkedList<Rule>();
     private List<Rule> point = new LinkedList<Rule>();
     private List<Rule> line = new LinkedList<Rule>();
+    private List<Rule> vars = new LinkedList<Rule>();
     private List<ExcludeRule> excludeRules = new LinkedList<ExcludeRule>();
     private String allTagsPrefix = null;
     
@@ -31,6 +32,9 @@ public class RuleSet {
     }
     public void addLineRule(Rule r) {
         line.add(r);
+    }
+    public void addVariablesRule(Rule r) {
+    	vars.add(r);
     }
     
     public List<Rule> getInnerPolygonRules() {
@@ -64,27 +68,30 @@ public class RuleSet {
         outer.addAll(existingRules.outer);
         point.addAll(existingRules.point);
         line.addAll(existingRules.line);
+        vars.addAll(existingRules.vars);
         excludeRules.addAll(existingRules.excludeRules);
     }
     public void applyLineRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives) {
-        applyRules(feature, geometryType, primitives, line);
+        applyRules(feature, geometryType, primitives, line, vars);
     }
     public void applyOuterPolygonRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives) {
-        applyRules(feature, geometryType, primitives, outer);
+        applyRules(feature, geometryType, primitives, outer, vars);
     }
     public void applyInnerPolygonRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives) {
-        applyRules(feature, geometryType, primitives, inner);
+        applyRules(feature, geometryType, primitives, inner, vars);
     }
     public void applyPointRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives) {
-        applyRules(feature, geometryType, primitives, point);
+        applyRules(feature, geometryType, primitives, point, vars);
     }
 
-    public void applyRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives, List<Rule> rules) {
+    public void applyRules(SimpleFeature feature, String geometryType, List<? extends Primitive> primitives, List<Rule> rules, List<Rule> varRules) {
         if(allTagsPrefix != null) {
             for (Primitive primitive : primitives) {
                 applyOriginalTagsTo(feature, geometryType, primitive, allTagsPrefix);
             }
         }
+        
+        List<Tag> vars  = parseVariables(feature, varRules);
         
         Collection<Property> properties = feature.getProperties();
         for (Property property : properties) {
@@ -99,7 +106,8 @@ public class RuleSet {
                         String escapedOriginalValue = StringEscapeUtils.escapeXml(dirtyOriginalValue);
 
                         for (Rule rule : rules) {
-                            Tag t = rule.createTag(srcKey, escapedOriginalValue);
+                        	Rule r = rule.applyVariables( vars ); 
+                            Tag t = r.createTag(srcKey, escapedOriginalValue);
                             if (t != null) {
                                 for (Primitive primitive : primitives) {
                                     primitive.addTag(t);
@@ -111,7 +119,7 @@ public class RuleSet {
             }
         }
     }
-    private static String getDirtyValue(Object value) {
+	private static String getDirtyValue(Object value) {
         String dirtyOriginalValue;
         if (value instanceof Double) {
             double asDouble = (Double) value;
@@ -126,6 +134,35 @@ public class RuleSet {
         }
         return dirtyOriginalValue;
     }
+
+    private static List<Tag> parseVariables(SimpleFeature feature, List<Rule> varRules) {
+    	LinkedList<Tag> vars = new LinkedList<Tag>();
+
+    	if ( ! varRules.isEmpty() )
+    	{
+	        Collection<Property> properties = feature.getProperties();
+	        for (Property property : properties) {
+	            String srcKey = property.getType().getName().toString();
+	            Object value = property.getValue();
+	            if (value != null) {
+	                String dirtyOriginalValue = getDirtyValue(value);
+	                
+	                if (!StringUtils.isEmpty(dirtyOriginalValue)) {
+	                    String escapedOriginalValue = StringEscapeUtils.escapeXml(dirtyOriginalValue);
+	
+	                    for (Rule rule : varRules) {
+	                        Tag t = rule.createTag(srcKey, escapedOriginalValue);
+	                        if (t != null) {
+	                        	vars.add(t);
+	                        }
+	                    }
+	                }
+	            }
+	        }
+    	}
+
+        return vars;
+	}
 
     private static void applyOriginalTagsTo(SimpleFeature feature, String geometryType, Primitive w, String prefix) {
         String prefixPlusColon = "";
