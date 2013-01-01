@@ -18,17 +18,96 @@
 #
 # Objects http://wiki.openstreetmap.org/wiki/OpenSeaMap/Seamark_Objects
 # 
+# Anchorage http://wiki.openstreetmap.org/wiki/OpenSeaMap/Anchorage
+var,OBJL,3,object,anchor_berth
+point,OBJL,3,seamark:type,${object}
+#
+var,OBJL,4,object,anchorage
+point,OBJL,4,seamark:type,${object}
+#
 # Beacons http://wiki.openstreetmap.org/wiki/OpenSeaMap/Beacons
 #
 var,OBJL,7,object_type,beacon_lateral
 var,OBJL,7,object,beacon
 point,OBJL,7,seamark:type,${object_type}
 #
+var,OBJL,9,object_type,beacon_special_purpose
+var,OBJL,9,object,beacon
+point,OBJL,9,seamark:type,${object_type}
+#
+var,OBJL,12,object_type,building
+var,OBJL,12,object,building
+point,OBJL,12,seamark:type,${object_type}
+#
+var,OBJL,13,object_type,builtup_area
+var,OBJL,13,object,builtup_area
+point,OBJL,13,seamark:type,${object_type}
+#
+var,OBJL,17,object_type,buoy_lateral
+var,OBJL,17,object,buoy
+point,OBJL,17,seamark:type,${object_type}
+#
+var,OBJL,18,object_type,buoy_safe_water
+var,OBJL,18,object,buoy
+point,OBJL,18,seamark:type,${object_type}
+#
+var,OBJL,19,object_type,buoy_special_purpose
+var,OBJL,19,object,buoy
+point,OBJL,19,seamark:type,${object_type}
+#
+var,OBJL,29,object_type,coastguard_station
+var,OBJL,29,object,coastguard_station
+point,OBJL,29,seamark:type,${object_type}
+#
+var,OBJL,39,object_type,daymark
+var,OBJL,39,object,daymark
+point,OBJL,39,seamark:type,${object_type}
+#
+var,OBJL,44,object_type,distance_mark
+var,OBJL,44,object,distance_mark
+point,OBJL,44,seamark:type,${object_type}
+#
+var,OBJL,58,object_type,fog_signal
+var,OBJL,58,object,fog_signal
+point,OBJL,58,seamark:type,${object_type}
+#
+var,OBJL,74,object_type,landmark
+var,OBJL,74,object,landmark
+point,OBJL,74,seamark:type,${object_type}
+#
 # Lights http://wiki.openstreetmap.org/wiki/OpenSeaMap/Lights
 #
 var,OBJL,75,object_type,light_minor
 var,OBJL,75,object,light
 point,OBJL,75,seamark:type,${object_type}
+#
+var,OBJL,84,object_type,mooring
+var,OBJL,84,object,mooring
+point,OBJL,84,seamark:type,${object_type}
+#
+var,OBJL,86,object_type,obstruction
+var,OBJL,86,object,obstruction
+point,OBJL,86,seamark:type,${object_type}
+#
+var,OBJL,90,object_type,pile
+var,OBJL,90,object,pile
+point,OBJL,90,seamark:type,${object_type}
+#
+var,OBJL,103,object_type,radar_transponder
+var,OBJL,103,object,radar_transponder
+point,OBJL,103,seamark:type,${object_type}
+#
+var,OBJL,125,object_type,tank
+var,OBJL,125,object,tank
+point,OBJL,125,seamark:type,${object_type}
+#
+var,OBJL,144,object_type,topmark
+var,OBJL,144,object,topmark
+point,OBJL,144,seamark:type,${object_type}
+#
+var,OBJL,159,object_type,wreck
+var,OBJL,159,object,wreck
+point,OBJL,159,seamark:type,${object_type}
 #
 # Attributes http://wiki.openstreetmap.org/wiki/OpenSeaMap/Seamark_Attributes
 # Object name 
@@ -103,4 +182,7 @@ point,BCNSHP,cairn,seamark:${object}:shape,cairn
 point,BCNSHP,pole,seamark:${object}:shape,pole
 point,BCNSHP,buoyant beacon,seamark:${object}:shape,buoyant
 #
+point,CATACH,unristricted anchorage,seamark:${object}:category,unrestricted
+#
+#---------------------------------------------------------------------------------
 
