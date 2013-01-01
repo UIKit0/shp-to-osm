@@ -96,12 +96,15 @@ public class Main {
                 .withArgName("suffix")
                 .hasOptionalArg()
                 .create());
+        options.addOption(OptionBuilder.withLongOpt("keepOnlyTagged")
+                .withDescription("Keep only tagged nodes.")
+                .create());
         
         boolean keepOnlyTaggedWays = false;
         try {
             CommandLine line = parser.parse(options, args, false);
             
-            if(line.hasOption("t")) {
+            if(line.hasOption("keepOnlyTagged")) {
                 keepOnlyTaggedWays = true;
             }
             
