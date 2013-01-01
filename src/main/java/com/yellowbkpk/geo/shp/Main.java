@@ -39,12 +39,13 @@ public class Main {
     
     private static Logger log = Logger.getLogger(Main.class.getName());
 
-    private static final String GENERATOR_STRING = "shp-to-osm 0.7";
+    private static final String GENERATOR_STRING = "shp-to-osm 0.7sea0.1";
 
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    @SuppressWarnings("static-access")
+	public static void main(String[] args) {
         
         CommandLineParser parser = new GnuParser();
         Options options = new Options();
