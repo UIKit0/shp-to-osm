@@ -88,7 +88,6 @@ public class ShpToOsmConverter {
             throw new ShpToOsmException("Could not find a way to transform to lat/lon.", e);
         }
             
-        outputter.start();
 
         // we are now connected
         String[] typeNames = dataStore.getTypeNames();
@@ -240,7 +239,6 @@ public class ShpToOsmConverter {
 
         }
 
-        outputter.finish();
     }
 
     private CoordinateReferenceSystem buildTargetCRS() throws ShpToOsmException {

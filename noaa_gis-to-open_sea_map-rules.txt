@@ -49,7 +49,7 @@ point,COLOUR,10,seamark:${object}:colour,violet
 point,COLOUR,11,seamark:${object}:colour,orange
 point,COLOUR,12,seamark:${object}:colour,magenta
 point,COLOUR,13,seamark:${object}:colour,pink
-# Height
+# Height`
 point,HEIGHT,,seamark:${object}:height,-
 # Light characteristics
 point,LITCHR,1,seamark:${object}:character,F
@@ -91,7 +91,16 @@ point,SIGPER,,seamark:${object}:period,-
 point,SIGSEQ,,seamark:${object}:sequence,-
 # Nominal range 
 point,VALNMR,,seamark:${object}:range,-
+# Beacon shape http://wiki.openstreetmap.org/wiki/OpenSeaMap/Beacons#Shapes
+point,BCNSHP,stake,seamark:${object}:shape,stake
+point,BCNSHP,pole,seamark:${object}:shape,pole
+point,BCNSHP,perch,seamark:${object}:shape,perch
+point,BCNSHP,post,seamark:${object}:shape,post
+point,BCNSHP,withy,seamark:${object}:shape,withy
+point,BCNSHP,beacon tower,seamark:${object}:shape,tower
+point,BCNSHP,pile beacon,seamark:${object}:shape,pile
+point,BCNSHP,cairn,seamark:${object}:shape,cairn
+point,BCNSHP,pole,seamark:${object}:shape,pole
+point,BCNSHP,buoyant beacon,seamark:${object}:shape,buoyant
+#
 
-
-
- 

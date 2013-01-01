@@ -1,10 +1,18 @@
 package com.yellowbkpk.geo.shp;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -80,6 +88,11 @@ public class Main {
         options.addOption(OptionBuilder.withLongOpt("copyTags")
                 .withDescription("Copy all shapefile attributes to OSM tags verbatim, with an optional prefix.")
                 .withArgName("prefix")
+                .hasOptionalArg()
+                .create());
+        options.addOption(OptionBuilder.withLongOpt("shapeSuffix")
+                .withDescription("Only process files with that suffix.")
+                .withArgName("suffix")
                 .hasOptionalArg()
                 .create());
         
@@ -176,8 +189,34 @@ public class Main {
             }
             outputter.setMaxElementsPerFile(maxNodesPerFile);
             
-            ShpToOsmConverter conv = new ShpToOsmConverter(shpFile, rules, keepOnlyTaggedWays, outputter);
-            conv.convert();
+            String shapeFileSuffix = "";
+            if(line.hasOption("shapeSuffix")) {
+            	shapeFileSuffix = line.getOptionValue("shapeSuffix");
+            }
+            
+            List<File> shapeFiles = new ArrayList<File>();
+            if ( ! shpFile.getName().toLowerCase().endsWith(".zip") )
+            {
+            	shapeFiles.add(shpFile); 
+            }
+            else
+            {
+            	shapeFiles =  unzipShapeArchive(shpFile, shapeFileSuffix);
+            }
+
+            outputter.start();
+
+            for  (File f : shapeFiles )
+            {
+                System.out.println("Processing " + f.getAbsolutePath() );
+            	ShpToOsmConverter conv = new ShpToOsmConverter(f, rules, keepOnlyTaggedWays, outputter);
+            
+            	conv.convert();
+            }
+            
+            outputter.finish();
+
+            
         } catch (IOException e) {
             log.log(Level.WARNING, "Error reading rules file.", e);
         } catch (ParseException e) {
@@ -190,7 +229,8 @@ public class Main {
         
     }
 
-    /**
+
+	/**
      * @param file
      * @return
      * @throws IOException 
@@ -277,6 +317,77 @@ public class Main {
             }
         }
         
+        br.close();
+
         return rules;
     }
+
+    /**
+     * Extracts the ZIP archive containing the shape files to process
+     * @param zipFile
+     * @return list of shape files
+     */
+    private static List<File>  unzipShapeArchive(File zipFile, String shapeFileSuffix) {
+         List<File> shapeFiles = new ArrayList<File>();
+
+         try {
+	        String name = zipFile.getName().substring(0,  (zipFile.getName().length() - 4));
+	    	File newPath = File.createTempFile( name, "" );
+	        newPath.delete();
+	        newPath.mkdir();
+	        System.out.println("Created unzip directory " + newPath.getAbsolutePath() );
+
+	        int BUFFER = 2048;
+	        ZipFile zip = new ZipFile( zipFile );
+
+	        Enumeration<?> zipFileEntries = zip.entries();
+
+	        // Process each entry
+	        while (zipFileEntries.hasMoreElements())
+	        {
+	            // grab a zip file entry
+	            ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+	            String currentEntry = entry.getName();
+	            File destFile = new File(newPath, currentEntry);
+	            //destFile = new File(newPath, destFile.getName());
+	            File destinationParent = destFile.getParentFile();
+
+	            // create the parent directory structure if needed
+	            destinationParent.mkdirs();
+
+	            if (! entry.isDirectory() )
+	            {
+	                System.out.println("Extracting " + destFile.getAbsolutePath() );
+	                BufferedInputStream is = new BufferedInputStream(zip
+	                .getInputStream(entry));
+	                int currentByte;
+	                // establish buffer for writing file
+	                byte data[] = new byte[BUFFER];
+
+	                // write the current file to disk
+	                FileOutputStream fos = new FileOutputStream(destFile);
+	                BufferedOutputStream dest = new BufferedOutputStream(fos,
+	                BUFFER);
+
+	                // read and write until last byte is encountered
+	                while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
+	                    dest.write(data, 0, currentByte);
+	                }
+	                dest.flush();
+	                dest.close();
+	                is.close();
+
+                    if( destFile.getName().toLowerCase().endsWith(shapeFileSuffix + ".shp") ){
+                        shapeFiles.add(destFile);
+	                }
+	            }
+	        }
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(0);
+            log.log(Level.WARNING, "Error reading shapes ZIP file.", e);
+		}
+		return shapeFiles;
+	}
+
 }
