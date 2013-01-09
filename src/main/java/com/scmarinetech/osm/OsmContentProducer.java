@@ -53,21 +53,29 @@ public class OsmContentProducer implements ContentProducer {
 
 	public void writeTo(OutputStream os) throws IOException {
 		
-		OutputStreamWriter bos = new OutputStreamWriter(os);
+		OutputStreamWriter out = new OutputStreamWriter(os);
 		
-		
-        bos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        bos.write("<osmChange version=\"0.6\" generator=\""+generator+"\">\n");
-        bos.write("  <create version=\"0.6\" generator=\""+generator+"\">\n");
+        out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        out.write("<osmChange version=\"0.6\" generator=\""+generator+"\">\n");
+        out.write("  <create version=\"0.6\" generator=\""+generator+"\">\n");
 
         Iterator<Node> nodeIter = osmFile.getNodeIterator();
-        outputNodes(bos, nodeIter);
+        outputNodes(out, nodeIter);
 
-        bos.write("  </create>\n");
-        bos.write("</osmChange>\n");
+        out.write("  </create>\n");
 
-        bos.flush();
+        out.write("  <delete>\n");
+        for ( int id : idsToRemove )
+        {
+        	out.write("    <node id=\"");
+        	out.write(Integer.toString( id ));
+        	out.write("\"/>\n");
+        }
+        out.write("  </delete>\n");
+        
+        out.write("</osmChange>\n");
 
+        out.flush();
 	}
 
 	private  void outputNodes(Writer out, Iterator<Node> nodeIter) throws IOException {
