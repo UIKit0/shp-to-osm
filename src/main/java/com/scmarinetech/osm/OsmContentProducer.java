@@ -25,17 +25,18 @@ public class OsmContentProducer implements ContentProducer {
         LAT_LON_FORMAT.setMaximumFractionDigits(7);
     }
 
+	final private List<Integer> idsToRemove;
+	final private String generator;
+	final int changeSetId;
+
 	private OSMFile osmFile;
-	private List<Integer> idsToRemove;
-	private String generator;
-	int changeSetId;
 
-	public OsmContentProducer(List<Integer> ids, File osmDir, int changeSetId) {
+	public OsmContentProducer(List<Integer> idsToRemove, File osmDir, int changeSetId, String generator) {
+		this.idsToRemove = idsToRemove;
 
-		generator = "osm-to-noaa";
+		this.generator = generator;
 		this.changeSetId = changeSetId;
 		
-		idsToRemove = ids;
 		
 		File [] files = osmDir.listFiles( new FilenameFilter() {
 			public boolean accept(File dir, String name) {
@@ -57,20 +58,16 @@ public class OsmContentProducer implements ContentProducer {
 		
         out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         out.write("<osmChange version=\"0.6\" generator=\""+generator+"\">\n");
+        
+        // Nodes to create
         out.write("  <create version=\"0.6\" generator=\""+generator+"\">\n");
-
-        Iterator<Node> nodeIter = osmFile.getNodeIterator();
-        outputNodes(out, nodeIter);
-
+        outputNewNodesToCreate(out, osmFile.getNodeIterator() );
         out.write("  </create>\n");
-
+        
+        // Nodes to delete
+        
         out.write("  <delete>\n");
-        for ( int id : idsToRemove )
-        {
-        	out.write("    <node id=\"");
-        	out.write(Integer.toString( id ));
-        	out.write("\"/>\n");
-        }
+        outputOldNodesToDelete(out);
         out.write("  </delete>\n");
         
         out.write("</osmChange>\n");
@@ -78,7 +75,7 @@ public class OsmContentProducer implements ContentProducer {
         out.flush();
 	}
 
-	private  void outputNodes(Writer out, Iterator<Node> nodeIter) throws IOException {
+	private  void outputNewNodesToCreate(Writer out, Iterator<Node> nodeIter) throws IOException {
         while (nodeIter.hasNext()) {
             Node node = nodeIter.next();
     
@@ -119,5 +116,19 @@ public class OsmContentProducer implements ContentProducer {
             out.write("\"/>\n");
         }
     }
+
+	private void outputOldNodesToDelete(OutputStreamWriter out) throws IOException {
+		for ( int id : idsToRemove )
+        {
+        	out.write("    <node id=\"");
+        	out.write(Integer.toString( id ));
+            out.write("\" changeset=\"");
+            out.write( Integer.toString(changeSetId));
+            out.write("\" version=\"");
+            out.write( Integer.toString(1));
+        	out.write("\"/>\n");
+        }
+	}
+
 
 }

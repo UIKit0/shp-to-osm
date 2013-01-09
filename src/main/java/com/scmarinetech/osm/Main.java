@@ -11,7 +11,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 public class Main {
-	
+
+	private static final String GENERATOR_STRING = "shp-to-osm 0.7sea0.1";
+
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) {
 		
@@ -75,7 +77,7 @@ public class Main {
 			String userName = line.getOptionValue("username");
 			String password = line.getOptionValue("password");
 
-			OsmUploader uploader = new OsmUploader(userName, password);
+			OsmUploader uploader = new OsmUploader(userName, password, GENERATOR_STRING);
 			uploader.uploadOsmFiles(osmdir, minx, miny, maxx, maxy, uid);
 						
 		} catch (NumberFormatException e) {

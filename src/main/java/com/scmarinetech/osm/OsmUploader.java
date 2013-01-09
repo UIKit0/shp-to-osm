@@ -24,17 +24,19 @@ import org.apache.http.util.EntityUtils;
 
 public class OsmUploader {
 
-	private static final String OSM_API_URI = "http://api06.dev.openstreetmap.org";
-	//private static final String OSM_API_URI = "http://api.openstreetmap.org";
+	//private static final String OSM_API_URI = "http://api06.dev.openstreetmap.org";
+	private static final String OSM_API_URI = "http://api.openstreetmap.org";
 	private static final String OSM_XAPI_URI = "http://www.overpass-api.de/api/xapi";
 
 	final private String username;
 	final private String password;
+	final private String generator;
 	
-	public OsmUploader(String userName, String password)
+	public OsmUploader(String userName, String password, String generator)
 	{
 		this.username = userName;
 		this.password = password;
+		this.generator = generator;
 	}
 	
 	public void uploadOsmFiles(File osmdir, double minx, double miny,
@@ -131,7 +133,7 @@ public class OsmUploader {
 	    		String changeSet = new StringBuilder()
 	    		  .append("<osm>")
 	    		  .append("<changeset>")
-	    		  .append("<tag k=\"created_by\" v=\"shp-to-osm-sea\"/>")
+	    		  .append("<tag k=\"created_by\" v=\"" + generator + "\"/>")
 	    		  .append("<tag k=\"comment\"    v=\"NOAA import\"/>")
 	    		  .append("</changeset>")
 	    		  .append("</osm>")
@@ -225,7 +227,7 @@ public class OsmUploader {
 
 	    		HttpPost httpPost = new HttpPost( createChnageSetUri );
 	    		
-	    		OsmContentProducer osmContentProducer = new OsmContentProducer(ids, osmDir, changeSetId);
+	    		OsmContentProducer osmContentProducer = new OsmContentProducer(ids, osmDir, changeSetId, generator);
 	    		
 				EntityTemplate entityTemplate = new EntityTemplate ( osmContentProducer );
 				entityTemplate.setContentType("text/xml");
