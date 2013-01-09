@@ -23,15 +23,31 @@ public class Main {
                 .hasArg()
                 .isRequired()
                 .create());
+        
         options.addOption(OptionBuilder.withLongOpt("bbox")
                 .withDescription("minx miny maxx maxy")
                 .withArgName("BBOX")
                 .hasArg()
                 .isRequired()
                 .create());
+        
         options.addOption(OptionBuilder.withLongOpt("uid")
                 .withDescription("User id")
                 .withArgName("UID")
+                .hasArg()
+                .isRequired()
+                .create());
+        
+        options.addOption(OptionBuilder.withLongOpt("username")
+                .withDescription("OSM user name")
+                .withArgName("USERNAME")
+                .hasArg()
+                .isRequired()
+                .create());
+        
+        options.addOption(OptionBuilder.withLongOpt("password")
+                .withDescription("OSM password")
+                .withArgName("PASSWORD")
                 .hasArg()
                 .isRequired()
                 .create());
@@ -55,8 +71,12 @@ public class Main {
 			double maxy = Double.parseDouble(bbox[3]);
 
 			int uid = Integer.parseInt( line.getOptionValue("uid") );
-			
-			OsmUploader.uploadOsmFiles(osmdir, minx, miny, maxx, maxy, uid);
+
+			String userName = line.getOptionValue("username");
+			String password = line.getOptionValue("password");
+
+			OsmUploader uploader = new OsmUploader(userName, password);
+			uploader.uploadOsmFiles(osmdir, minx, miny, maxx, maxy, uid);
 						
 		} catch (NumberFormatException e) {
             System.err.println("Could not parse number " + e.getMessage());
