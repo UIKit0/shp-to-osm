@@ -87,14 +87,23 @@ public class OSMSaxParser extends DefaultHandler {
      */
     private void handlePrimitiveAttributes(Attributes attributes) {
         int id = Integer.parseInt(attributes.getValue("id"));
-//        String date = attributes.getValue("timestamp");
-        int ver = Integer.parseInt(attributes.getValue("version"));
-        int uid = Integer.parseInt(attributes.getValue("uid"));
-        String username = attributes.getValue("user");
-        User user = new User(uid, username);
-        currentPrimitive.setUser(user);
-        currentPrimitive.setID(id);
-        currentPrimitive.setVersion(ver);
+        
+        if ( attributes.getValue("version") !=  null )
+        {
+        	int ver = Integer.parseInt(attributes.getValue("version"));
+            currentPrimitive.setVersion(ver);
+        }
+        if ( attributes.getValue("uid") !=  null )
+        {
+	        int uid = Integer.parseInt(attributes.getValue("uid"));
+	        currentPrimitive.setID(id);
+	        if ( attributes.getValue("user") !=  null )
+	        {
+		        String username = attributes.getValue("user");
+		        User user = new User(uid, username);
+		        currentPrimitive.setUser(user);
+	        }
+        }        
     }
 
     public void endElement(String uri, String localName, String qName) throws SAXException {
