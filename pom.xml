@@ -91,9 +91,14 @@
             <version>20040117.000000</version>
         </dependency>
         <dependency>
-        	<groupId>org.apache.httpcomponents</groupId>
-        	<artifactId>httpclient</artifactId>
-        	<version>4.2.2</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.2</version>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>capcode</groupId>
+            <artifactId>s57library</artifactId>
+            <version>1.0</version>
+        </dependency>
+        </dependencies>
 </project>
