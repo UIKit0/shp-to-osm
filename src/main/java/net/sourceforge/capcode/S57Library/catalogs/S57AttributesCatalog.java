@@ -32,7 +32,7 @@ public class S57AttributesCatalog extends Vector<S57CatalogAttributeElement>{
 		scanner.nextLine();
 		while(scanner.hasNextLine()){
 			String[] fields = scanner.nextLine().split(",");	
-			S57CatalogAttributeElement a = new S57CatalogAttributeElement(Integer.parseInt(fields[0]), fields[1], fields[2]);
+			S57CatalogAttributeElement a = new S57CatalogAttributeElement(Integer.parseInt(fields[0]), fields[1], fields[2], fields[3].charAt(0) );
 			super.add(a);
 		}
 		scanner.close();

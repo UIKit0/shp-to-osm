@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.sourceforge.capcode.S57Library.basics.Link;
+import net.sourceforge.capcode.S57Library.catalogs.S57AttributesCatalog;
 import net.sourceforge.capcode.S57Library.files.S57ModuleReader;
 import net.sourceforge.capcode.S57Library.objects.E_S57ObjectPrimitiveType;
 import net.sourceforge.capcode.S57Library.objects.S57Feature;
