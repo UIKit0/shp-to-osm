@@ -6,6 +6,7 @@ package net.sourceforge.capcode.S57Library.files;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -458,6 +459,32 @@ public class S57ModuleReader{
 	public void setNumberOfFaceRecords(int numberOfFaceRecords) {
 		this.numberOfFaceRecords = numberOfFaceRecords;
 	}
+	public void load(InputStream is, String encName, int size ) throws Exception  {
+		int index = 0;
+		this.fileName = encName;
+		int recNum = 0;
+		
+		byte[] array = new byte[size];
+		
+		int remaining = size;
+		int offst = 0;
+		System.out.println("Start downloading " + encName + " size :" + remaining + " bytes ...");
+		while ( remaining > 0 )
+		{
+			int nread = is.read(array, offst, remaining );
+			if ( nread == -1 )
+				break;
+			offst += nread;
+			remaining -= nread; 
+		}
+		System.out.println("Done downloading, processing");
+		
+		buffer = ByteBuffer.wrap(array);
+
+		callBackInit(size);
+		processBuffer(size, index, recNum);
+		callBackEnd();
+	}
 
 	public void load(String aFileName) throws Exception {
 		int index = 0;
@@ -471,6 +498,13 @@ public class S57ModuleReader{
 		//read the whole file into the byteBuffer
 		fc.read(buffer);
 		fc.close();
+		processBuffer(size, index, recNum);
+		callBackEnd();
+	}
+
+	
+	private void processBuffer(int size, int index, int recNum) throws Exception,
+			S57ReadException {
 		buffer.rewind();
 		while (buffer.position() < size && !canceled){
 			S57LogicalRecord record = readRecordAtIndex(index);
@@ -481,8 +515,8 @@ public class S57ModuleReader{
 			index += record.getRecordLength();
 			callBackWhileLoading(record, index);
 		}
-		callBackEnd();
 	}
+
 
 	public void extractGeneralInformation(String aFileName) throws Exception {
 		int index = 0;
@@ -552,5 +586,6 @@ public class S57ModuleReader{
 		// do nothing, called by S57DataRecord
 		
 	}
+
 
 }
