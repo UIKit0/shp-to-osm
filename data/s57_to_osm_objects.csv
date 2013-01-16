@@ -10,8 +10,8 @@ s57code,osm_name
 9, beacon_special_purpose
 10, berth
 11, bridge
-12, building
-13, built-up_area
+#12, building
+#13, built-up_area
 14, buoy_cardinal
 15, buoy_installation
 16, buoy_isolated_danger
@@ -69,9 +69,9 @@ s57code,osm_name
 68, inshore_traffic_zone
 69, lake
 70, lake_shore
-71, land_area
-72, land_elevation
-73, land_region
+#71, land_area
+#72, land_elevation
+#73, land_region
 74, landmark
 75, light
 76, light_float
@@ -119,7 +119,7 @@ s57code,osm_name
 118, sand_waves
 119, sea_area
 120, seaplane_landing_area
-121, seabed_area
+#121, seabed_area
 122, shoreline_construction
 123, signal_station_traffic
 124, signal_station_warning
@@ -127,7 +127,7 @@ s57code,osm_name
 126, slope_topline
 127, sloping_ground
 128, small_craft_facility
-129, sounding
+#129, sounding
 130, spring
 131, square
 132, territorial_baseline

@@ -2,86 +2,61 @@ package com.scmarinetech.S57;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 
-import net.sourceforge.capcode.S57Library.catalogs.S57Attribute;
-import net.sourceforge.capcode.S57Library.objects.S57Feature;
-
-public class OSMWriter {
+public class OSMWriter implements SeaMarkNodeSink {
 
 	S57ToOsmMapper map;
+	FileWriter fw;
+	String osmfilePrefix; 
+	private int maxNodes = 5000 ;
+	private int osmFileIdx = 0;
+	private int nodeCount = 0;
+	private String osmFileName;
 	
-	public OSMWriter()
+	public OSMWriter(String osmfile) throws IOException
 	{
-		map = new S57ToOsmMapper();
+		this.map = new S57ToOsmMapper();
+		this.osmfilePrefix = osmfile;
+	}
+	public void setMaxNodes(int maxNodes)
+	{
+		this.maxNodes = maxNodes;
 	}
 	
-	public void write(List<FeaturedSpatial> featuredSpatials, String osmfile) throws IOException {
-		System.out.println("Creating  " +  osmfile + " ...");
 
-		FileWriter fw = new FileWriter(osmfile);
-		fw.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-		fw.write("<osm version='0.6' generator='s57-to-osm'>\n");
-		
-		int nodeId = -1;
-		for ( FeaturedSpatial fs: featuredSpatials)
-		{
-			writeNode(fw, nodeId--, fs);
+	public void onDataSetStart() {
+		try {
+			osmFileName = osmfilePrefix + String.format("_%03d.osm", osmFileIdx++);
+			System.out.println("Creating  " +  osmFileName);
+			fw = new FileWriter( osmFileName);
+			fw.write("<?xml version='1.0' encoding='UTF-8'?>\n");
+			fw.write("<osm version='0.6' generator='s57-to-osm'>\n");
+			nodeCount = 0;
+		} catch (IOException e) {
 		}
-		
-		fw.write("</osm>");
-
-		fw.close();
-		System.out.println("Created  " +  osmfile);
 	}
 
-	private void writeNode(FileWriter fw, int id, FeaturedSpatial fs) throws IOException {
-		
-		fw.write(String.format("<node id='%d' version='1' visible='true'  lat='%f' lon='%f'>\n"
-				,id
-				,fs.spatial.coordinate.latitude
-				,fs.spatial.coordinate.longitude));
-		
-		String masterName = null;
-		String name = "unknown";
-		for ( S57Feature f : fs.getFeatures() )
-		{
-			name = map.getObjectName(f.object.code);
-			if ( name != null )
+	public void onNodeDecoded(SeaMarkNode seaMarkNode) {
+		try {
+			if ( nodeCount >= maxNodes  )
 			{
-				writeAttributes(fw, f);
-				if ( f.linkedFeatures != null )
-					masterName = name;
+				onDataSetEnd();
+				onDataSetStart();
+				nodeCount = 0;
 			}
+			fw.write( seaMarkNode.toString() );
+			nodeCount ++ ;
+		} catch (IOException e) {
 		}
-		fw.write("<tag k='seamark:type' v='");
-		fw.write( masterName != null ? masterName : name);
-		fw.write("' />");
-		
-		fw.write("</node>\n");
 	}
 
-	private void writeAttributes(FileWriter fw, S57Feature feature) throws IOException {
-		for ( S57Attribute attr : feature.attributes )
-		{
-			if (     map.getAttrName(attr.name.code) != null 
-					&& attr.value != null 
-					&& map.getAttrValue(attr.name.code, attr.name.type, attr.value ) != null)
-			{
-				fw.write("<tag k='seamark:");
-				fw.write( map.getObjectName(feature.object.code) );
-				fw.write(":");
-				fw.write( map.getAttrName(attr.name.code) );
-				if ( "colour".contentEquals(map.getAttrName(attr.name.code)) )
-				{
-					fw.write("");
-				}
-				fw.write("' v='");
-				fw.write( map.getAttrValue(attr.name.code, attr.name.type, attr.value ) );
-				fw.write("' />\n");
-			}
+	public void onDataSetEnd() {
+		try {
+			fw.write("</osm>");
+			fw.close();
+			System.out.println("Created  " +  osmFileName);
+		} catch (IOException e) {
 		}
-		
 	}
 
 }

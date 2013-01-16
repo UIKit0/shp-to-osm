@@ -6,7 +6,7 @@ import java.util.List;
 import net.sourceforge.capcode.S57Library.objects.S57Feature;
 import net.sourceforge.capcode.S57Library.objects.S57Spatial;
 
-class FeaturedSpatial{
+public class FeaturedSpatial{
 	final S57Spatial spatial;
 	final private List<S57Feature> features;
 	FeaturedSpatial(S57Spatial spatial)
