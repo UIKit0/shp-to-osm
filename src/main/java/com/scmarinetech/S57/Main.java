@@ -41,7 +41,7 @@ public class Main {
 
 			NoaaDownloader downloader = new NoaaDownloader();
 			
-			downloader.downloadEncFiles(xmlUrl, new OSMWriter( osmfile ) );
+			downloader.downloadEncFiles(xmlUrl, new OSMChangeWriter( osmfile ) );
 			
 		} catch (ParseException e1) {
             System.err.println("Could not parse command line: " + e1.getMessage());

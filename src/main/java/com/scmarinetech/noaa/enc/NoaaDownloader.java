@@ -22,9 +22,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.scmarinetech.S57.FeaturedSpatial;
-import com.scmarinetech.S57.OSMWriter;
 import com.scmarinetech.S57.S57Reader;
 import com.scmarinetech.S57.S57ToOSMConverter;
+import com.scmarinetech.S57.SeaMarkNodeSink;
 
 public class NoaaDownloader {
 	
@@ -83,7 +83,7 @@ public class NoaaDownloader {
 
 	}
 	
-	public void downloadEncFiles(String xmlFileUrl, OSMWriter osmWriter) {
+	public void downloadEncFiles(String xmlFileUrl, SeaMarkNodeSink seaMarkNodeSink) {
 	
 		zipUrls = new ArrayList<String>();
 		
@@ -127,7 +127,7 @@ public class NoaaDownloader {
 				    {
 						S57Reader reader = new S57Reader();
 						List<FeaturedSpatial>  featuredSpatials = reader.readEncFile( zis, name, (int) entry.getSize() );
-						S57ToOSMConverter converter = new S57ToOSMConverter(osmWriter);
+						S57ToOSMConverter converter = new S57ToOSMConverter( seaMarkNodeSink );
 					    converter.doConversion( featuredSpatials );
 				    }
 				    zis.closeEntry();

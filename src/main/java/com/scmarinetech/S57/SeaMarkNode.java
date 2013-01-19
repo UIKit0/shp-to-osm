@@ -2,14 +2,10 @@ package com.scmarinetech.S57;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 
-public class SeaMarkNode {
-	
-	final int id;
-	final double lat;
-	final double lon;
-	final HashMap<String,String> tags;
+import com.scmarinetech.osm.OsmNode;
+
+public class SeaMarkNode extends OsmNode {
 	
 	// Unique node identification 
 	long   lnam;
@@ -20,20 +16,18 @@ public class SeaMarkNode {
 	
 	public SeaMarkNode( int id, double lat, double lon) throws NoSuchAlgorithmException
 	{
-		this.id = id;
-		this.lat = lat;
-		this.lon = lon;
-		tags = new HashMap<String, String>();
+		super(id, lat, lon );
 		if ( md == null )
 		{
 			 md = MessageDigest.getInstance("SHA1") ; 
 		}
 	}
-	
+
 	public void addTag(String obj, String attr, String v)
 	{
 		tags.put("seamark:" + obj + ":" + attr , v);
 	}
+
 		
 	public void closeNode(String type, long lnam)
 	{
