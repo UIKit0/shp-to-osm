@@ -11,6 +11,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.scmarinetech.noaa.enc.NoaaDownloader;
+import com.scmarinetech.utils.BoundingBox;
 
 public class Main {
 
@@ -33,13 +34,25 @@ public class Main {
                 .hasArg()
                 .isRequired()
                 .create());
+        options.addOption(OptionBuilder.withLongOpt("bbox")
+                .withDescription("Bounding box.")
+                .withArgName("OSMFILE")
+                .hasArg()
+                .create());
 
         try {
 			CommandLine line = parser.parse(options, args, false);
 			String xmlUrl = line.getOptionValue("xmlurl");
 			String osmfile = line.getOptionValue("osmfile");
+			
 
 			NoaaDownloader downloader = new NoaaDownloader();
+
+			if ( line.hasOption("bbox")) 
+			{
+				BoundingBox bbox = new BoundingBox( line.getOptionValue("bbox") ); 
+				downloader.setBoundBox( bbox );
+			}
 			
 			downloader.downloadEncFiles(xmlUrl, new OSMChangeWriter( osmfile ) );
 			
@@ -49,6 +62,8 @@ public class Main {
             formatter.printHelp("java -cp shp-to-osm.jar", options, true);
             System.exit(1);
 		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (NumberFormatException e1) {
 			e1.printStackTrace();
 		}
 	}

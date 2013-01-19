@@ -25,10 +25,9 @@ import com.scmarinetech.S57.FeaturedSpatial;
 import com.scmarinetech.S57.S57Reader;
 import com.scmarinetech.S57.S57ToOSMConverter;
 import com.scmarinetech.S57.SeaMarkNodeSink;
+import com.scmarinetech.utils.BoundingBox;
 
 public class NoaaDownloader {
-	
-	ArrayList<String> zipUrls;
 	
 	class NoaaXmlParser extends DefaultHandler
 	{
@@ -83,6 +82,14 @@ public class NoaaDownloader {
 
 	}
 	
+	ArrayList<String> zipUrls;
+	BoundingBox bbox;
+	
+	public NoaaDownloader()
+	{
+		bbox = new BoundingBox();
+	}
+
 	public void downloadEncFiles(String xmlFileUrl, SeaMarkNodeSink seaMarkNodeSink) {
 	
 		zipUrls = new ArrayList<String>();
@@ -125,7 +132,7 @@ public class NoaaDownloader {
 		            String name = entry.getName();
 				    if( name.endsWith(".000") )
 				    {
-						S57Reader reader = new S57Reader();
+						S57Reader reader = new S57Reader(bbox);
 						List<FeaturedSpatial>  featuredSpatials = reader.readEncFile( zis, name, (int) entry.getSize() );
 						S57ToOSMConverter converter = new S57ToOSMConverter( seaMarkNodeSink );
 					    converter.doConversion( featuredSpatials );
@@ -148,5 +155,8 @@ public class NoaaDownloader {
 		
 	}
 
+	public void setBoundBox(BoundingBox bbox) {
+		this.bbox = bbox;
+	}
 
 }

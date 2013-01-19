@@ -5,7 +5,7 @@ import java.util.List;
 
 public class OsmNodeFetcher {
 
-	final private static double CACHE_BB_SIZE = 0.05; 
+	final private static double CACHE_BB_SIZE = 0.025; 
 	private List<OsmNode> cachedList;
 	final private OsmApi osmApi;
 	double cachedLat;

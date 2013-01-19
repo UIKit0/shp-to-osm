@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.scmarinetech.utils.BoundingBox;
+
 import net.sourceforge.capcode.S57Library.basics.Link;
 import net.sourceforge.capcode.S57Library.files.S57ModuleReader;
 import net.sourceforge.capcode.S57Library.objects.E_S57ObjectPrimitiveType;
@@ -15,9 +17,10 @@ import net.sourceforge.capcode.S57Library.objects.S57Spatial;
 public class S57Reader {
 
 	private final List<FeaturedSpatial> fearuredSpatials;
-	
-	public S57Reader()
+	private final BoundingBox bbox;
+	public S57Reader(BoundingBox bbox)
 	{
+		this.bbox = bbox;
 		fearuredSpatials = new LinkedList<FeaturedSpatial>();
 	}
 
@@ -65,7 +68,7 @@ public class S57Reader {
 					for ( Link l : feature.linkToSpatials )
 					{
 						S57Spatial s = (S57Spatial) spatials.searchByCode( l.name );
-						if ( s != null )
+						if ( s != null && bbox.contains(s.coordinate.latitude, s.coordinate.longitude) )
 						{
 							addToFeaturedSpatialList(s, feature);
 						}
@@ -96,7 +99,5 @@ public class S57Reader {
 		}
 		featuredSpatial.addFeature(f);
 	}
-
-
 
 }
