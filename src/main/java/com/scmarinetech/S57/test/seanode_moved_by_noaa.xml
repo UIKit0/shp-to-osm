@@ -1,0 +1,27 @@
+<node id='2113145738' version='1' visible='true'  lat='38.808789' lon='-122.407582'>
+<tag k='seamark:light:period' v='2.5' />
+<tag k='seamark:light:height' v='4.2' />
+<tag k='seamark:daymark:colour' v='red;red' />
+<tag k='seamark:beacon_lateral:colour' v='red' />
+<tag k='seamark:beacon_lateral:source' v='US,US,graph,Chart 18650' />
+<tag k='noaa:taghash' v='68b5969a4a51682ff0c121db9a09ebcea606bb0a' />
+<tag k='seamark:beacon_lateral:shape' v='post' />
+<tag k='noaa:lnam' v='12e30fb7' />
+<tag k='seamark:light:exhibition' v='night' />
+<tag k='seamark:daymark:shape' v='triangle, point up' />
+<tag k='seamark:daymark:source' v='US,US,reprt,DD-8807' />
+<tag k='seamark:type' v='beacon_lateral' />
+<tag k='seamark:beacon_lateral:category' v='starboard' />
+<tag k='seamark:light:source_date' v='20010604' />
+<tag k='seamark:light:colour' v='red' />
+<tag k='seamark:light:character' v='Fl' />
+<tag k='seamark:light:source' v='US,US,graph,Chart 18650' />
+<tag k='seamark:beacon_lateral:name' v='Pier 39 Marina Light 2' />
+<tag k='noaa:geohash' v='4691ecb9e815' />
+<tag k='seamark:light:group' v='(1)' />
+<tag k='seamark:beacon_lateral:status' v='private' />
+<tag k='seamark:beacon_lateral:source_date' v='20010604' />
+<tag k='seamark:daymark:colour_pattern' v='border' />
+<tag k='seamark:daymark:source_date' v='20070322' />
+<tag k='seamark:light:sequence' v='00.3+(02.2)' />
+</node>

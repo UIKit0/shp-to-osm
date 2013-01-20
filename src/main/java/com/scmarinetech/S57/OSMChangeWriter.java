@@ -76,13 +76,55 @@ public class OSMChangeWriter implements SeaMarkNodeSink {
 		fw.write( seaMarkNode.toString() );
 		if ( ! neigbours.isEmpty() )
 		{
-			fw.write("<!-- Neighbours -->\n");
 			System.out.println("Found " + neigbours.size() + " neigbours");
+			boolean changeOrConflictWriten = false;
 			for ( OsmNode node:  neigbours )
 			{
-				fw.write(node.toString() );
+				if ( comapreWithNeigbour(seaMarkNode, node) ) 
+				{
+					break;
+				}
+			}
+			
+			if ( ! changeOrConflictWriten )
+			{
+				// No neighbor was similar to us
+				fw.write(seaMarkNode.toString() );
 			}
 		}
+	}
+
+	private boolean comapreWithNeigbour(SeaMarkNode seaMarkNode, OsmNode neigbour) throws IOException {
+		
+		if ( SeaMarkNode.isSeaMarkNode ( neigbour ) )
+		{
+			SeaMarkNode neigbSeaMark = new SeaMarkNode ( neigbour );
+			if ( neigbSeaMark.hasSameGlobalId ( seaMarkNode ) )
+			{
+				if ( ! neigbSeaMark.isIdentical ( seaMarkNode ) )
+				{
+					SeaMarkNode newNode = seaMarkNode.conflateWith( neigbSeaMark );
+					fw.write(newNode.toString() );
+				}
+				else
+				{
+					// No change is necessary
+				}
+				return true; 
+			}
+			else
+			{
+				// Ignore this neighbor 
+				return false;
+			}
+			
+		}else if ( SeaMarkNode.hasSeaMarksAttribures( neigbour ) ){
+			fw.write(seaMarkNode.toString() ); // FIXME write to conflicts writer 
+			return true; 
+		}
+		
+		
+		return false;
 	}
 	
 	
