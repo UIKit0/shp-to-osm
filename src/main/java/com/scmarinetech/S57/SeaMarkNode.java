@@ -2,6 +2,8 @@ package com.scmarinetech.S57;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.scmarinetech.osm.OsmNode;
 
@@ -14,13 +16,9 @@ public class SeaMarkNode extends OsmNode {
 	
 	static MessageDigest md = null;
 	
-	public SeaMarkNode( int id, double lat, double lon) throws NoSuchAlgorithmException
+	public SeaMarkNode( long id, double lat, double lon) 
 	{
 		super(id, lat, lon );
-		if ( md == null )
-		{
-			 md = MessageDigest.getInstance("SHA1") ; 
-		}
 	}
 
 	public SeaMarkNode(OsmNode node) {
@@ -40,20 +38,53 @@ public class SeaMarkNode extends OsmNode {
 	public void closeNode(String type, long lnam)
 	{
 		tags.put("seamark:type" , type );
-		this.lnam = lnam;
-		this.geoHash = intcoord(lat) + intcoord(lon) * 1000000;
 		
-		for( String k : tags.keySet() )
+		this.lnam = lnam;
+		tags.put("noaa:lnam" , Long.toHexString(this.lnam) );
+		
+		this.geoHash = computeGeoHash(lat, lon);
+		tags.put("noaa:geohash" , Long.toHexString( this.geoHash ) );
+		
+		this.tagsHash = computeTagHash();
+		tags.put("noaa:taghash" , this.tagsHash );
+	}
+
+	private String computeTagHash() {
+		
+		if ( md == null )
 		{
-			md.update(k.getBytes());
-			md.update(tags.get(k).getBytes());
+			 try {
+				md = MessageDigest.getInstance("SHA1") ;
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			} 
+		}
+		
+		md.reset();
+		
+		List<String> tagsKeys = new LinkedList<String>( tags.keySet() );
+		java.util.Collections.sort( tagsKeys );
+		for( String key : tagsKeys )
+		{
+			if ( !key.contentEquals("noaa:taghash") && !key.contentEquals("noaa:geohash") )
+			{
+				md.update(key.getBytes());
+				md.update(tags.get(key).getBytes());
+			}
 		}
 		
 		byte[] digest  = md.digest();
 		StringBuilder sb = new StringBuilder();
 		for ( byte b : digest)
 			sb.append(String.format("%02x", b & 0xff));
-		tagsHash = sb.toString();
+
+		//System.out.println( sb.toString());
+		return sb.toString();
+	}
+
+	private long computeGeoHash(double lat, double lon) {
+		    return Math.round((lat + 100) * 1e6 ) 
+			      + Math.round((lon + 200) * 1e6 ) * 1000000;
 	}
 
 	public String toString()
@@ -69,15 +100,6 @@ public class SeaMarkNode extends OsmNode {
 			sb.append("<tag k='").append(k).append("' ");
 			sb.append("v='").append(tags.get(k)).append("' />\n");
 		}
-
-		sb.append("<tag k='").append("noaa:lnam").append("' ");
-		sb.append("v='").append(Long.toHexString(lnam)).append("' />\n");
-		
-		sb.append("<tag k='").append("noaa:geohash").append("' ");
-		sb.append("v='").append(Long.toHexString(this.geoHash)).append("' />\n");
-
-		sb.append("<tag k='").append("noaa:taghash").append("' ");
-		sb.append("v='").append(this.tagsHash).append("' />\n");
 		
 		sb.append( "</node>\n");
 		return sb.toString();
@@ -109,21 +131,61 @@ public class SeaMarkNode extends OsmNode {
 	}
 
 	public boolean isIdentical(SeaMarkNode node) {
-		if  ( intcoord( this.lat)  != intcoord( node.lat) ) return false;  
-		if  ( intcoord( this.lon)  != intcoord( node.lon) ) return false;
-		
-		if ( ! this.tags.equals(node.tags) ) return false;
-		
-		return true;
+		return computeGeoHash(this.lat, this.lon) == computeGeoHash(node.lat, node.lon) 
+				&& this.computeTagHash().contentEquals( node.computeTagHash() ); 
+	}
+	
+	public boolean wasMovedByNoaa(SeaMarkNode node) {
+		return this.geoHash != node.geoHash;
+	}
+	public boolean tagsChangedByNoaa(SeaMarkNode node) {
+		return ! this.tagsHash.contentEquals( node.tagsHash );
 	}
 
-	private long intcoord(double val) {
-		return Math.round((val + 200) * 1e6 );
+	public boolean wasMovedByHuman() {
+		return computeGeoHash(this.lat, this.lon) != this.geoHash ;
+	}
+
+	public boolean tagsChangedByHuman() {
+		return ! this.computeTagHash().contentEquals( this.tagsHash );
 	}
 
 	public SeaMarkNode conflateWith(SeaMarkNode original) {
-		// TODO Auto-generated method stub
-		return null;
+        // |                          | Moved by noaa   - true   | Moved by noaa   - false  |
+        // | Moved by human  - true   |         noaa             |          human           |
+        // | Moved by human  - false  |         noaa             |          no change        |
+
+		//                            | Tagged by noaa - true | Tagged by noaa - false
+        // | Tagged by human - true   |        noaa           |         human
+        // | Tagged by human - false  |        noaa           |         no change
+
+		double newLat = this.lat;
+		double newLon = this.lon;
+		if ( original.wasMovedByHuman( ) && ! this.wasMovedByNoaa( original ))
+		{
+			newLat = original.lat;
+			newLon = original.lon;
+		}
+		
+		SeaMarkNode node = new SeaMarkNode(this.id, newLat, newLon);
+
+		if ( original.tagsChangedByHuman( ) && ! this.tagsChangedByNoaa( original ))
+		{
+			node.tags.putAll(original.tags);
+		}
+		else
+		{
+			node.tags.putAll(this.tags);
+		}
+		
+		node.tags.remove("noaa:lnam");
+		node.tags.remove("noaa:geohash");
+		node.tags.remove("noaa:taghash");
+		node.tags.remove("seamark:type");
+		
+		node.closeNode(this.tags.get("seamark:type"), this.lnam);
+		
+		return node;
 	}
 
 }

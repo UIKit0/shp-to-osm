@@ -45,15 +45,109 @@ public class SeaMarkNodeTest extends TestCase {
 		LinkedList<OsmNode> nodes = readNodes(getClass().getResource("seanode_org.xml"));
 		assertEquals(1, nodes.size() );
 		SeaMarkNode org_node = new SeaMarkNode( nodes.get(0) ) ;
+		assertFalse(org_node.wasMovedByHuman() );
+		assertFalse(org_node.tagsChangedByHuman() );
 		
+		nodes = readNodes(getClass().getResource("seanode_moved_by_human.xml"));
+		assertEquals(1, nodes.size() );
+		SeaMarkNode seanode_moved_by_human = new SeaMarkNode( nodes.get(0) ) ;
+		assertTrue( org_node.hasSameGlobalId(seanode_moved_by_human) );
+		assertFalse( org_node.isIdentical(seanode_moved_by_human) );
+		assertTrue( seanode_moved_by_human.wasMovedByHuman() );
+		assertFalse ( seanode_moved_by_human.wasMovedByNoaa( org_node ) );
+		assertFalse(org_node.tagsChangedByHuman() );
+
+		nodes = readNodes(getClass().getResource("seanode_attrchanged_by_human.xml"));
+		assertEquals(1, nodes.size() );
+		SeaMarkNode seanode_attrchanged_by_human = new SeaMarkNode( nodes.get(0) ) ;
+		assertTrue( org_node.hasSameGlobalId(seanode_attrchanged_by_human) );
+		assertFalse( org_node.isIdentical(seanode_attrchanged_by_human) );
+		assertFalse(seanode_attrchanged_by_human.wasMovedByHuman() );
+		assertTrue(seanode_attrchanged_by_human.tagsChangedByHuman() );
+
+		nodes = readNodes(getClass().getResource("seanode_attrchanged_by_noaa.xml"));
+		assertEquals(1, nodes.size() );
+		SeaMarkNode seanode_attrchanged_by_noaa = new SeaMarkNode( nodes.get(0) ) ;
+		assertTrue( org_node.hasSameGlobalId(seanode_attrchanged_by_noaa) );
+		assertFalse ( org_node.isIdentical(seanode_attrchanged_by_noaa) );
+		assertFalse( seanode_attrchanged_by_noaa.wasMovedByNoaa( org_node ) );
+		assertTrue ( seanode_attrchanged_by_noaa.tagsChangedByNoaa( org_node ) );
+		assertFalse(seanode_attrchanged_by_noaa.wasMovedByHuman() );
+		assertFalse(seanode_attrchanged_by_noaa.tagsChangedByHuman() );
+
 		nodes = readNodes(getClass().getResource("seanode_moved_by_noaa.xml"));
 		assertEquals(1, nodes.size() );
 		SeaMarkNode seanode_moved_by_noaa = new SeaMarkNode( nodes.get(0) ) ;
 		assertTrue( org_node.hasSameGlobalId(seanode_moved_by_noaa) );
 		assertFalse( org_node.isIdentical(seanode_moved_by_noaa) );
+		assertTrue ( seanode_moved_by_noaa.wasMovedByNoaa( org_node ) );
+		assertFalse( seanode_moved_by_noaa.tagsChangedByNoaa( org_node ) );
+		assertFalse( seanode_moved_by_noaa.wasMovedByHuman() );
+		assertFalse( seanode_moved_by_noaa.tagsChangedByHuman() );
+
 		
-		SeaMarkNode  conflated = seanode_moved_by_noaa.conflateWith(org_node);
-		assertNotNull(conflated);
+		
+        // |                          | Moved by noaa   - true   | Moved by noaa   - false  |
+        // | Moved by human  - true   |         noaa             |          human           |
+        // | Moved by human  - false  |         noaa             |          no change        |
+
+		//                            | Tagged by noaa - true | Tagged by noaa - false
+        // | Tagged by human - true   |        noaa           |         human
+        // | Tagged by human - false  |        noaa           |         no change
+
+		// No changes from NOAA cases
+		
+		SeaMarkNode conflated = org_node.conflateWith(seanode_moved_by_human);
+		assertEquals( conflated.lat, seanode_moved_by_human.lat, 0.000001);
+		assertEquals( conflated.lon, seanode_moved_by_human.lon, 0.000001);
+		for ( String key : seanode_moved_by_human.tags.keySet() )
+		{
+			if ( key.contentEquals("noaa:geohash")) continue; 
+			assertEquals( "|"+key+"|", seanode_moved_by_human.tags.get(key), conflated.tags.get(key) );
+		}
+		
+		conflated = org_node.conflateWith(seanode_attrchanged_by_human);
+		assertEquals( conflated.lat, seanode_attrchanged_by_human.lat, 0.000001);
+		assertEquals( conflated.lon, seanode_attrchanged_by_human.lon, 0.000001);
+		for ( String key : seanode_moved_by_human.tags.keySet() )
+		{
+			if ( key.contentEquals("noaa:taghash")) continue; 
+			if ( key.contentEquals("seamark:light:period")) 
+			{
+				assertEquals( "|"+key+"|", "2.4", conflated.tags.get(key) );
+			}
+			else
+			{
+				assertEquals( "|"+key+"|", seanode_moved_by_human.tags.get(key), conflated.tags.get(key) );
+			}
+		}
+		
+		// Changes made by noaa override human changes
+		conflated = seanode_moved_by_noaa.conflateWith(seanode_moved_by_human);
+		assertEquals( conflated.lat, seanode_moved_by_noaa.lat, 0.000001);
+		assertEquals( conflated.lon, seanode_moved_by_noaa.lon, 0.000001);
+		for ( String key : seanode_moved_by_noaa.tags.keySet() )
+		{
+			if ( key.contentEquals("noaa:geohash")) continue; 
+			assertEquals( "|"+key+"|", seanode_moved_by_noaa.tags.get(key), conflated.tags.get(key) );
+		}
+
+		conflated = seanode_attrchanged_by_noaa.conflateWith(seanode_attrchanged_by_human);
+		assertEquals( conflated.lat, seanode_attrchanged_by_noaa.lat, 0.000001);
+		assertEquals( conflated.lon, seanode_attrchanged_by_noaa.lon, 0.000001);
+		for ( String key : seanode_attrchanged_by_noaa.tags.keySet() )
+		{
+			if ( key.contentEquals("noaa:taghash")) continue; 
+			if ( key.contentEquals("seamark:light:period")) 
+			{
+				assertEquals( "|"+key+"|", "3.5", conflated.tags.get(key) );
+			}
+			else
+			{
+				assertEquals( "|"+key+"|", seanode_attrchanged_by_noaa.tags.get(key), conflated.tags.get(key) );
+			}
+		}
+		
 		
 	}
 
