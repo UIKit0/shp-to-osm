@@ -1,6 +1,5 @@
 package com.scmarinetech.S57;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -10,70 +9,47 @@ import com.scmarinetech.osm.OsmNodeFetcher;
 public class OSMChangeWriter implements SeaMarkNodeSink {
 
 	private static final double NEIGBOUR_DIST = (1. / 60. / 1850.)  * 50; // 50 meters  
-	S57ToOsmMapper map;
-	final OsmNodeFetcher nodeFetcher;
+	final private OsmNodeFetcher nodeFetcher;
+		
+	private final OsmNodeWriter newNodesOsmWriter;
+	private final OsmNodeWriter conflictsOsmWriter;
+	private final OsmNodeWriter autoConflateOsmWriter;
 	
-	FileWriter fw;
-	String osmfilePrefix; 
-	private int maxNodes = 5000 ;
-	private int osmFileIdx = 0;
-	private int nodeCount = 0;
-	private String osmFileName;
-	
-	public OSMChangeWriter(String osmfile) throws IOException
+	public OSMChangeWriter(String osmdir) throws IOException
 	{
-		this.map = new S57ToOsmMapper();
 		this.nodeFetcher = new OsmNodeFetcher();
-		this.osmfilePrefix = osmfile;
+		
+		this.newNodesOsmWriter = new OsmNodeWriter(osmdir, "new_nodes_");
+		this.conflictsOsmWriter = new OsmNodeWriter(osmdir, "conflict_");
+		this.autoConflateOsmWriter = new OsmNodeWriter(osmdir, "auto_resolved_");
 	}
 	
 	public void setMaxNodes(int maxNodes)
 	{
-		this.maxNodes = maxNodes;
+		this.newNodesOsmWriter.setMaxNodes( maxNodes );
+		this.conflictsOsmWriter.setMaxNodes( maxNodes );
+		this.autoConflateOsmWriter.setMaxNodes( maxNodes );
 	}
 
 	public void onDataSetStart() {
-		try {
-			osmFileName = osmfilePrefix + String.format("_%03d.osm", osmFileIdx++);
-			System.out.println("Creating  " +  osmFileName);
-			fw = new FileWriter( osmFileName);
-			fw.write("<?xml version='1.0' encoding='UTF-8'?>\n");
-			fw.write("<osm version='0.6' generator='s57-to-osm'>\n");
-			nodeCount = 0;
-		} catch (IOException e) {
-		}
+		newNodesOsmWriter.open();
+		conflictsOsmWriter.open();
+		autoConflateOsmWriter.open();
 	}
 
 	public void onDataSetEnd() {
-		try {
-			fw.write("</osm>");
-			fw.close();
-			System.out.println("Created  " +  osmFileName);
-		} catch (IOException e) {
-		}
+		newNodesOsmWriter.close();
+		conflictsOsmWriter.close();
+		autoConflateOsmWriter.close();
 	}
-
 
 	public void onNodeDecoded(SeaMarkNode seaMarkNode) {
-		try {
-			if ( nodeCount >= maxNodes  )
-			{
-				onDataSetEnd();
-				onDataSetStart();
-				nodeCount = 0;
-			}
-			
 			createChange( seaMarkNode );
-			
-			nodeCount ++ ;
-		} catch (IOException e) {
-		}
 	}
 
-	private void createChange(SeaMarkNode seaMarkNode)  throws IOException {
+	private void createChange(SeaMarkNode seaMarkNode) {  
 		
 		List<OsmNode> neigbours =  nodeFetcher.getNodes(seaMarkNode.lat, seaMarkNode.lon, NEIGBOUR_DIST );
-		fw.write( seaMarkNode.toString() );
 		if ( ! neigbours.isEmpty() )
 		{
 			System.out.println("Found " + neigbours.size() + " neigbours");
@@ -82,6 +58,7 @@ public class OSMChangeWriter implements SeaMarkNodeSink {
 			{
 				if ( comapreWithNeigbour(seaMarkNode, node) ) 
 				{
+					changeOrConflictWriten = true;
 					break;
 				}
 			}
@@ -89,12 +66,24 @@ public class OSMChangeWriter implements SeaMarkNodeSink {
 			if ( ! changeOrConflictWriten )
 			{
 				// No neighbor was similar to us
-				fw.write(seaMarkNode.toString() );
+				newNodesOsmWriter.write( seaMarkNode );
 			}
+		}
+		else
+		{
+			// No neighbors, it's safe to create new node 
+			newNodesOsmWriter.write(seaMarkNode);
 		}
 	}
 
-	private boolean comapreWithNeigbour(SeaMarkNode seaMarkNode, OsmNode neigbour) throws IOException {
+	/**
+	 * 
+	 * @param seaMarkNode
+	 * @param neigbour
+	 * @return false - if no action is taken<br>
+	 *          true - if change or conflict is written or identical node is found 
+	 */
+	private boolean comapreWithNeigbour(SeaMarkNode seaMarkNode, OsmNode neigbour) {
 		
 		if ( SeaMarkNode.isSeaMarkNode ( neigbour ) )
 		{
@@ -104,7 +93,7 @@ public class OSMChangeWriter implements SeaMarkNodeSink {
 				if ( ! neigbSeaMark.isIdentical ( seaMarkNode ) )
 				{
 					SeaMarkNode newNode = seaMarkNode.conflateWith( neigbSeaMark );
-					fw.write(newNode.toString() );
+					autoConflateOsmWriter.write( newNode );
 				}
 				else
 				{
@@ -119,10 +108,9 @@ public class OSMChangeWriter implements SeaMarkNodeSink {
 			}
 			
 		}else if ( SeaMarkNode.hasSeaMarksAttribures( neigbour ) ){
-			fw.write(seaMarkNode.toString() ); // FIXME write to conflicts writer 
+			conflictsOsmWriter.write( seaMarkNode );
 			return true; 
 		}
-		
 		
 		return false;
 	}
