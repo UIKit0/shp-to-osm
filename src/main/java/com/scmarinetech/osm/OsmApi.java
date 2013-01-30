@@ -17,7 +17,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public class OsmApi {
 	
 	//private static final String OSM_API_URI = "http://api06.dev.openstreetmap.org";
-	private static final String OSM_API_URI = "http://api.openstreetmap.org";
+	//private static final String OSM_API_URI = "http://api.openstreetmap.org";
+	private static final String OSM_XAPI_URI = "http://www.overpass-api.de";
 
 	public List<OsmNode> getNodes(double left, double bottom, double right, double top) {
 		LinkedList<OsmNode> nodes = new LinkedList<OsmNode>();
@@ -25,7 +26,7 @@ public class OsmApi {
 		
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 
-		String bbox  = new StringBuilder("bbox=")
+		String bbox  = new StringBuilder("map?bbox=")
 		.append(left).append(',')
 		.append(bottom).append(',')
 		.append(right).append(',')
@@ -34,8 +35,8 @@ public class OsmApi {
 
 		URI retrieveBboxUri;
 		try {
-			retrieveBboxUri = new URIBuilder( OSM_API_URI )
-			.setPath("/api/0.6/map")
+			retrieveBboxUri = new URIBuilder( OSM_XAPI_URI )
+			.setPath("/api/xapi")
 			.setQuery(bbox)
 			.build();
 		} catch (URISyntaxException e1) {
